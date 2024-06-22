@@ -1,14 +1,19 @@
 /* eslint-disable prettier/prettier */
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ContactService } from './contact.service';
+import { CreateMessageDto } from './dto/create-message-dto';
 
 
-@Controller()
+@Controller('contact')
 export class ContactController {
   constructor(private readonly contactService: ContactService) {}
+  @Get()
+  getAllMessage() {
+    return this.contactService.getAllMessage()
+  }
 
-  @Get("contact")
-  getMessage(): string {
-    return this.contactService.getMessage();
+  @Post()
+  createMessage(@Body() createMessageDto: CreateMessageDto) {
+    return this.contactService.createMessage(createMessageDto)
   }
 }
