@@ -4,7 +4,7 @@ import { ContactService } from './contact.service';
 import { CreateMessageDto } from './dto/create-message-dto';
 
 
-@Controller('contact')
+@Controller('api/contact')
 export class ContactController {
   constructor(private readonly contactService: ContactService) {}
   @Get()
