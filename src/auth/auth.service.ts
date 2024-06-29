@@ -4,23 +4,30 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schema/user.schema';
 import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
-
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class AuthService {
     constructor(@InjectModel(User.name) private userModel: Model<User>){}
-    
+    private readonly saltRounds = 10;
+
     async register (createUserDto: CreateUserDto) {
         try{
             const findUser = await this.userModel.findOne({email: createUserDto.email})
             if(findUser){
                 throw new Error("user already exist!")
-            }
+            };
             if(createUserDto.password !== createUserDto.confirmPassword){
                 throw new Error("password not matched!")
-            }
+            };
+
+            const salt = await bcrypt.genSalt(this.saltRounds);
+            const hashPassword = await bcrypt.hash(createUserDto.password, salt);
+            const hashConfirmPassword = await bcrypt.hash(createUserDto.confirmPassword, salt);
             const newUser = new this.userModel({
-                ...createUserDto
-            })
+                ...createUserDto,
+                password: hashPassword,
+                confirmPassword: hashConfirmPassword,
+            });
             return newUser.save();
         }catch(error){
             throw new HttpException(
@@ -32,7 +39,10 @@ export class AuthService {
 
     async getAllUsers() {
         try{
-            const allUsers = await this.userModel.find({}).exec()
+            const allUsers = await this.userModel
+            .find({})
+            .select({password: false, confirmPassword: false})
+            .exec()
             return allUsers;
         }catch(error){
             throw new HttpException(
